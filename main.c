@@ -45,7 +45,7 @@ void Delay(__IO uint16_t nCount)
     }  
 }
 
-void DataOrganize(void)
+u8 DataOrganize(void)
 {
   u16  i;
   u8  Buffer[9];
@@ -80,17 +80,7 @@ void DataOrganize(void)
     FLASH_ProgramByte((add + i), Buffer[i]);
   } 
 
-  //判断是否发送数据，每存储60组发送一次
-   if(MemCnt%60==0)
-  {
-//    FLASH_ProgramByte(0x9fff, 0x55);
-    for(i=0;i<61*9+10;i++)
-    {
-      FLASH_EraseByte(add_start+i);
-    }
-         
-  }
-    
+  return MemCnt;   
 }
 
 /*******************************************************************************
