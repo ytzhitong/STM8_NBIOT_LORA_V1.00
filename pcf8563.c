@@ -77,6 +77,7 @@ unsigned char buffer[4];
 void InitIIC(void)
 {
   CLK_PeripheralClockConfig(CLK_Peripheral_I2C,ENABLE);
+  GPIO_Init(GPIOC, GPIO_Pin_1 | GPIO_Pin_0, GPIO_Mode_Out_OD_HiZ_Fast);
   I2C_DeInit();
   I2C_Init(IICSPEED, PCF8563_ADDRESS, I2C_DutyCycle_2, I2C_Ack_Enable, I2C_AcknowledgedAddress_7bit);  
   I2C_Cmd(ENABLE);
@@ -145,7 +146,8 @@ static unsigned char RTC_Bcd2ToBin(unsigned char BCDValue)
   *****************************************************************************
 **/
 void PCF8563_Write_Byte(unsigned char REG_ADD, unsigned char dat)
-{        
+{    
+    //I2C_AcknowledgeConfig(ENABLE);
           /* 等待空闲 */
     while(I2C_GetFlagStatus(I2C_FLAG_BUSY));
     
@@ -193,6 +195,8 @@ unsigned char PCF8563_Read_Byte(unsigned char REG_ADD)
 {
 
    unsigned char tmp;
+   I2C_AcknowledgeConfig(ENABLE);
+   
    while(I2C_GetFlagStatus(I2C_FLAG_BUSY));
    I2C_GenerateSTART(ENABLE);
     /* 测试EV5 ，检测从器件返回一个应答信号*/
@@ -566,11 +570,16 @@ void PCF8563_SetTimer(_PCF8563_Timer_Typedef* PCF_TimerStruct)
 	
 	Timer_Ctrl = PCF8563_Read_Byte(PCF8563_Address_Timer);  //获的控制寄存器值
 	Timer_Value = PCF8563_Read_Byte(PCF8563_Address_Timer_VAL);  //获取倒计时数值
-	//
+//	PCF8563_Read_nByte(PCF8563_Address_Timer, 1, &Timer_Ctrl);
+//      PCF8563_Read_nByte(PCF8563_Address_Timer_VAL, 1, &Timer_Value);
+        
+        //
 	//先停止定时器
 	//
 	Timer_Ctrl &= PCF_Timer_Close;
-	PCF8563_Write_Byte(PCF8563_Address_Timer, Timer_Ctrl);
+	//PCF8563_Write_Byte(PCF8563_Address_Timer, Timer_Ctrl);
+        PCF8563_Write_nByte(PCF8563_Address_Timer,1, &Timer_Ctrl);
+
 	
 	Timer_Ctrl &= 0x7c;  //清除定时器之前设置
 	
@@ -587,7 +596,8 @@ void PCF8563_SetTimer(_PCF8563_Timer_Typedef* PCF_TimerStruct)
 	{
 		Timer_Ctrl &= PCF_Timer_Close;
 	}
-	PCF8563_Write_Byte(PCF8563_Address_Timer_VAL, Timer_Value);  //写入倒计时数值
+	//PCF8563_Write_Byte(PCF8563_Address_Timer_VAL, Timer_Value);  //写入倒计时数值
+        PCF8563_Write_nByte(PCF8563_Address_Timer_VAL,1, &Timer_Value);
 	
 	if (PCF_TimerStruct->RTC_Timer_Interrupt == PCF_Time_INT_Open)  //开启了中断输出
 	{
@@ -596,17 +606,20 @@ void PCF8563_SetTimer(_PCF8563_Timer_Typedef* PCF_TimerStruct)
 		Timer_Value &= ~(1<<2);  //清除定时器中断标志
 		Timer_Value &= ~(1<<4);  //当 TF 有效时 INT 有效 (取决于 TIE 的状态) 
 		Timer_Value |= PCF_Time_INT_Open;  //开启定时器中断输出
-		PCF8563_Write_Byte(PCF8563_Address_Control_Status_2, Timer_Value);
+		//PCF8563_Write_Byte(PCF8563_Address_Control_Status_2, Timer_Value);
+                PCF8563_Write_nByte(PCF8563_Address_Control_Status_2,1, &Timer_Value);
 	}
 	else
 	{
 		Timer_Value = PCF8563_Read_Byte(PCF8563_Address_Control_Status_2);  //获取控制/状态寄存器2数值
 		Timer_Value &= PCF_Time_INT_Close;  //清除定时器中断使能
 		Timer_Value |= PCF_Time_INT_Open;  //开启定时器中断输出
-		PCF8563_Write_Byte(PCF8563_Address_Control_Status_2, Timer_Value);
+		//PCF8563_Write_Byte(PCF8563_Address_Control_Status_2, Timer_Value);
+                PCF8563_Write_nByte(PCF8563_Address_Control_Status_2,1, &Timer_Value);
 	}
 	
-	PCF8563_Write_Byte(PCF8563_Address_Timer, Timer_Ctrl);  //设置定时器控制寄存器
+	//PCF8563_Write_Byte(PCF8563_Address_Timer, Timer_Ctrl);  //设置定时器控制寄存器
+        PCF8563_Write_nByte(PCF8563_Address_Timer,1, &Timer_Ctrl);
 }
 
 /**
