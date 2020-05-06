@@ -134,8 +134,8 @@ void EXTI_SetPinSensitivity(EXTI_Pin_TypeDef EXTI_PinNum,
 {
 
   /* Check function parameters */
-  assert_param(IS_EXTI_PINNUM(EXTI_PinNum));
-  assert_param(IS_EXTI_Trigger_VALUE(EXTI_TriggerValue));
+  //assert_param(IS_EXTI_PINNUM(EXTI_PinNum));
+  //assert_param(IS_EXTI_Trigger_VALUE(EXTI_TriggerValue));
 
   /* Clear port sensitivity bits */
   switch (EXTI_PinNum)

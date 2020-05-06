@@ -141,7 +141,7 @@ void CLK_PeripheralClockConfig(CLK_Peripheral_TypeDef CLK_Peripheral, Functional
 void CLK_MasterPrescalerConfig(CLK_MasterPrescaler_TypeDef CLK_MasterPrescaler)
 {
   /* check parameters */
-  assert_param(IS_CLK_MASTER_PRESCALER(CLK_MasterPrescaler));
+  //assert_param(IS_CLK_MASTER_PRESCALER(CLK_MasterPrescaler));
 
   CLK->CKDIVR &= (uint8_t)(~CLK_CKDIVR_HSIDIV);
   CLK->CKDIVR = (uint8_t)CLK_MasterPrescaler;

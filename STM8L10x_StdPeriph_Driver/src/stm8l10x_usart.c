@@ -104,15 +104,15 @@ void USART_Init(uint32_t BaudRate, USART_WordLength_TypeDef USART_WordLength,
   uint32_t BaudRate_Mantissa = 0;
 
   /* Check the parameters */
-  assert_param(IS_USART_BAUDRATE(BaudRate));
-
-  assert_param(IS_USART_WordLength(USART_WordLength));
-
-  assert_param(IS_USART_STOPBITS(USART_StopBits));
-
-  assert_param(IS_USART_PARITY(USART_Parity));
-
-  assert_param(IS_USART_MODE(USART_Mode));
+//  assert_param(IS_USART_BAUDRATE(BaudRate));
+//
+//  assert_param(IS_USART_WordLength(USART_WordLength));
+//
+//  assert_param(IS_USART_STOPBITS(USART_StopBits));
+//
+//  assert_param(IS_USART_PARITY(USART_Parity));
+//
+//  assert_param(IS_USART_MODE(USART_Mode));
 
   /* Clear the word length and Parity Control bits */
   USART->CR1 &= (uint8_t)(~(USART_CR1_PCEN | USART_CR1_PS | USART_CR1_M));

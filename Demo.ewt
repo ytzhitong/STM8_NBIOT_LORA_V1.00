@@ -2127,9 +2127,6 @@
             <name>$PROJ_DIR$\AM2320.C</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\BC28.c</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\delay.c</name>
         </file>
         <file>
@@ -2137,6 +2134,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\pcf8563.c</name>
+            <configuration>
+                <name>Debug</name>
+            </configuration>
         </file>
         <file>
             <name>$PROJ_DIR$\STM8L10x_StdPeriph_Driver\inc\stm8l10x.h</name>
@@ -2152,6 +2152,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\store.C</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\Uart.c</name>
         </file>
     </group>
 </project>

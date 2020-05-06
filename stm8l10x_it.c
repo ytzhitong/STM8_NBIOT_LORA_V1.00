@@ -27,7 +27,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm8l10x_it.h"
-#include "BC28.h"
+#include "Uart.h"
+
+extern u8 LoraWakeFlag;
 
 /** @addtogroup STM8L10x_StdPeriph_Templates
   * @{
@@ -148,6 +150,7 @@ INTERRUPT_HANDLER(EXTI2_IRQHandler, 10)
     /* In order to detect unexpected events during development,
        it is recommended to set a breakpoint on the following instruction.
     */
+  LoraWakeFlag=1;
   EXTI_ClearITPendingBit (EXTI_IT_Pin2);
 }
 
@@ -161,6 +164,7 @@ INTERRUPT_HANDLER(EXTI3_IRQHandler, 11)
     /* In order to detect unexpected events during development,
        it is recommended to set a breakpoint on the following instruction.
     */
+  EXTI_ClearITPendingBit (EXTI_IT_Pin3);
 }
 
 /**
@@ -319,6 +323,8 @@ INTERRUPT_HANDLER(USART_RX_IRQHandler, 28)
        it is recommended to set a breakpoint on the following instruction.
     */
   USART_ClearITPendingBit ();//清中断标志
+  
+  buf_uart.flag=1;
   
   if(buf_uart.index >= BUFLEN)
   {

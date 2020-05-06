@@ -3,6 +3,7 @@
 #include "stm8l10x.h"
 #include "AM2320.h"
 #include "pcf8563.h"
+#include "Uart.h"
 #include "stdio.h"        //包含C库函数
 #include <time.h>
 #include <string.h>
@@ -10,6 +11,10 @@
 //定义LED接口
 #define LED_GPIO_PORT  GPIOB
 #define LED_GPIO_PINS  GPIO_Pin_1
+
+//定义输入接口
+#define KEY_GPIO_PORT  GPIOB
+#define KEY_GPIO_PINS  GPIO_Pin_5
 
 //定义lora唤醒口
 #define LORA_WAKE_PORT  GPIOC
@@ -22,6 +27,8 @@
 //定义被时钟唤醒口
 #define PCF8563_PORT      GPIOB
 #define PCF8563_INT_PINS  GPIO_Pin_3
+
+u8 LoraWakeFlag=0;
 
 #define add_start  0x9800
 u8  MemCnt=0;      //已存数据组数
@@ -42,7 +49,7 @@ struct tm stm;
 extern _PCF8563_Time_Typedef PCF8563_Time;
 extern _PCF8563_Date_Typedef PCF8563_Date;
 unsigned char Century;
-_PCF8563_Timer_Typedef PCF8563_Timer={120,PCF_Timer_F1,PCF_Time_INT_Open,PCF_Time_INT_Open};
+_PCF8563_Timer_Typedef PCF8563_Timer={10,PCF_Timer_F1,PCF_Timer_Open,PCF_Time_INT_Open};
 
 /*******************************************************************************
 ****入口参数：无
@@ -111,7 +118,7 @@ void DataStore(void)
 
   //读取已存数据的数量，MemCnt表示已存数量
   val=FLASH_ReadByte(add);
-  while((val==0x55)&&(MemCnt<220))
+  while((val==0x55)&&(MemCnt<200))
   {
     MemCnt++;
     add=add+9;
@@ -133,8 +140,7 @@ void DataStore(void)
   for(i=0;i<9;i++)
   {
     FLASH_ProgramByte((add + i), Buffer[i]);
-  }
-  
+  }  
   MemCnt++;
 }
 
@@ -151,15 +157,17 @@ void main(void)
     GPIO_Init(LED_GPIO_PORT, LED_GPIO_PINS, GPIO_Mode_Out_PP_Low_Slow);//初始化LED端口，上拉输出低电平、低速
     GPIO_SetBits(LED_GPIO_PORT,LED_GPIO_PINS); //拉高
     
+    GPIO_Init(KEY_GPIO_PORT, KEY_GPIO_PINS, GPIO_Mode_In_FL_No_IT);//初始化KEY端口
+    
     GPIO_Init(LORA_WAKE_PORT, LORA_WAKE_PINS, GPIO_Mode_Out_OD_Low_Slow);//初始化LORA唤醒端口，开漏输出、低速
     GPIO_SetBits(LORA_WAKE_PORT,LORA_WAKE_PINS); //拉高lora唤醒引脚
 
     GPIO_Init(LORA_HOSTWAKE_PORT, LORA_HOSTWAKE_PINS, GPIO_Mode_In_FL_IT);//初始化LORA唤醒mcu端口
     GPIO_Init(PCF8563_PORT, PCF8563_INT_PINS, GPIO_Mode_In_FL_IT);//
     EXTI_DeInit (); //恢复中断的所有设置 
-    EXTI_SetPinSensitivity (EXTI_Pin_2,EXTI_Trigger_Falling);//外部中断2，上升沿触发，向量号10
+    EXTI_SetPinSensitivity (EXTI_Pin_2,EXTI_Trigger_Rising);//外部中断2，上升沿触发，向量号10
     EXTI_SetPinSensitivity (EXTI_Pin_3,EXTI_Trigger_Falling);
-    
+        
     CLK_PeripheralClockConfig (CLK_Peripheral_USART,ENABLE); //使能串口时钟
         //初始化USART的2个脚--TXD-RXD
     GPIO_Init(GPIOC,GPIO_Pin_3,GPIO_Mode_Out_PP_High_Fast);//TXD
@@ -172,24 +180,24 @@ void main(void)
    
     InitIIC();
     
-    delay_ms(1000);
-    
-//    PCF8563_Set_Times(PCF_Format_BIN,PCF_Century_20xx,20, 1, 15, 3,17,15);
-    PCF8563_SetTimer(&PCF8563_Timer);
-    
+    delay_ms(100);
+               
     FLASH_SetProgrammingTime(FLASH_ProgramTime_Standard);//标准编程时间
     FLASH_Unlock(FLASH_MemType_Program);  //解除保护
     
     while(1)
     {
-      
-        ts=AM2320_get_value(&hum,&temp);
-        
-        PCF8563_GetDate(PCF_Format_BIN, &Century, &PCF8563_Date);
-                
+            
+        while(GPIO_ReadInputDataBit(KEY_GPIO_PORT,KEY_GPIO_PINS)!=0)//读GP输入状态
+        {
+           TimeSVN();   //对时模式
+        }
+
+        ts=AM2320_get_value(&hum,&temp);       
+        PCF8563_GetDate(PCF_Format_BIN, &Century, &PCF8563_Date);                
         PCF8563_GetTime(PCF_Format_BIN,&PCF8563_Time);
 
-        delay_ms(1000);
+        delay_ms(500);
     
         GPIO_ResetBits(LED_GPIO_PORT,LED_GPIO_PINS); //拉di
 
@@ -204,8 +212,18 @@ void main(void)
         stm.tm_min =PCF8563_Time.RTC_Minutes;
         stm.tm_sec =PCF8563_Time.RTC_Seconds;
         TimeStamp=mktime(&stm);
- 
-//        DataStore();
+
+
+        PCF8563_SetTimer(&PCF8563_Timer);         
+        //DataStore();
+
+        
+//        if(LoraWakeFlag==1)
+//        {
+//          LoraWakeFlag=0;
+//          USART_SendNbyte("lora wake",10) ;
+//        }
+     
 //        
 //        ByteNumGlo = DataReOrg(Data,MemCnt);
 //        
@@ -214,12 +232,8 @@ void main(void)
 //        DataErase(MemCnt);
 //                           
         GPIO_SetBits(LED_GPIO_PORT,LED_GPIO_PINS); //拉高
-        
-        delay_ms(1000);
-        
-        GPIO_ResetBits(LED_GPIO_PORT,LED_GPIO_PINS); //拉高
-        
-        halt();//挂起，最低功耗
+                
+//        halt();//挂起，最低功耗
 
         delay_ms(1000);
     }

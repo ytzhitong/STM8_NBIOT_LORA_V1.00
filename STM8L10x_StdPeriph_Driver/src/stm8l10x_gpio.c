@@ -103,8 +103,8 @@ void GPIO_Init(GPIO_TypeDef* GPIOx,
   /* Check the parameters */
   /*----------------------*/
 
-  assert_param(IS_GPIO_MODE(GPIO_Mode));
-  assert_param(IS_GPIO_PIN(GPIO_Pin));
+//  assert_param(IS_GPIO_MODE(GPIO_Mode));
+//  assert_param(IS_GPIO_PIN(GPIO_Pin));
 
   /*-----------------------------*/
   /* Input/Output mode selection */
