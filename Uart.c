@@ -4,8 +4,8 @@
 #include "AM2320.h"
 #include "pcf8563.h"
 
-//#include <stdlib.h>
-//#include <stdio.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 UART_BUF buf_uart;
 char *strx,*extstrx;
@@ -76,40 +76,32 @@ _PCF8563_Date_Typedef PCF8563_Date_Set;
 //
 void TimeSVN(void)
 {
-//     char* ptr = NULL;
+     char* ptr = NULL;
    
      if(buf_uart.flag==1)
      {
        delay_ms(200);
-       
-//       for(int i=0;i<56;i++)
-//       {
-//         if((buf_uart.buf[i]=='#')&&(buf_uart.buf[i+1]=='#'))
-//         {
-//           PCF8563_Date_Set.RTC_Years=buf_uart.buf[i+4]*10+buf_uart.buf[i+5]
-//         }
-//       }
-//             
+             
        if(strstr(buf_uart.buf, "TimeSet") != NULL)//
        {
-//         ptr = strstr(buf_uart.buf, "TimeSet");
-//         ptr+=8;
-//         PCF8563_Date_Set.RTC_Years = atoi(ptr)-2000;
-//         
-//         ptr+=5;
-//         PCF8563_Date_Set.RTC_Months = atoi(ptr);
-//      
-//         ptr+=3;
-//         PCF8563_Date_Set.RTC_Days = atoi(ptr);
-//  
-//         ptr+=3;
-//         PCF8563_Time_Set.RTC_Hours = atoi(ptr);         
-//
-//         ptr+=3;
-//         PCF8563_Time_Set.RTC_Minutes = atoi(ptr); 
-//
-//         ptr+=3;
-//         PCF8563_Time_Set.RTC_Seconds = atoi(ptr); 
+         ptr = strstr(buf_uart.buf, "TimeSet");
+         ptr+=8;
+         PCF8563_Date_Set.RTC_Years = atoi(ptr)-2000;
+         
+         ptr+=5;
+         PCF8563_Date_Set.RTC_Months = atoi(ptr);
+      
+         ptr+=3;
+         PCF8563_Date_Set.RTC_Days = atoi(ptr);
+  
+         ptr+=3;
+         PCF8563_Time_Set.RTC_Hours = atoi(ptr);         
+
+         ptr+=3;
+         PCF8563_Time_Set.RTC_Minutes = atoi(ptr); 
+
+         ptr+=3;
+         PCF8563_Time_Set.RTC_Seconds = atoi(ptr); 
 
          PCF8563_SetDate(PCF_Format_BIN, PCF_Century_20xx,&PCF8563_Date_Set);
          PCF8563_SetTime(PCF_Format_BIN, &PCF8563_Time_Set);
